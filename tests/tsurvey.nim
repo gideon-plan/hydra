@@ -3,7 +3,8 @@
 {.experimental: "strict_funcs".}
 
 import std/[unittest, os]
-import sp/[survey, lattice]
+import basis/code/choice
+import sp/[survey]
 
 when not declared(survey_port):
   const survey_port = 41040

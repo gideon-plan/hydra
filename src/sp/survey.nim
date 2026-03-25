@@ -4,7 +4,8 @@
 ## RESPONDENT: recv question, send reply.
 
 import std/[times, net, locks, tables, nativesockets, posix]
-import wire, transport, socket, lattice
+import basis/code/choice
+import wire, transport, socket
 
 # =====================================================================================================================
 # Types
@@ -38,26 +39,26 @@ proc set_recv_timeout(conn: SpConn, ms: int) =
 proc new_surveyor*(deadline_ms: int = 1000): SpSurveyor =
   SpSurveyor(sock: new_socket(spSurveyor), deadline_ms: deadline_ms)
 
-proc listen*(sv: SpSurveyor, port: int): Result[void, SpError] =
+proc listen*(sv: SpSurveyor, port: int): Choice[bool] =
   try:
     sv.sock.listen(port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc accept*(sv: SpSurveyor): Result[void, SpError] =
+proc accept*(sv: SpSurveyor): Choice[bool] =
   try:
     discard sv.sock.accept_peer()
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc survey*(sv: SpSurveyor, question: string): Result[seq[string], SpError] =
+proc survey*(sv: SpSurveyor, question: string): Choice[seq[string]] =
   ## Send question to all respondents, collect replies within deadline.
   try:
     sv.sock.send_all(question)
   except SpError as e:
-    return Result[seq[string], SpError].bad(e[])
+    return bad[seq[string]]("sp", e.msg)
 
   var replies: seq[string] = @[]
   let deadline = getTime() + initDuration(milliseconds = sv.deadline_ms)
@@ -87,7 +88,7 @@ proc survey*(sv: SpSurveyor, question: string): Result[seq[string], SpError] =
       discard  # timeout or error: skip this respondent
     set_recv_timeout(conn, 0)  # reset
 
-  Result[seq[string], SpError].good(replies)
+  good(replies)
 
 proc close*(sv: SpSurveyor) =
   if sv != nil and sv.sock != nil:
@@ -100,26 +101,26 @@ proc close*(sv: SpSurveyor) =
 proc new_respondent*(): SpRespondent =
   SpRespondent(sock: new_socket(spRespondent), peer_id: 0)
 
-proc connect*(resp: SpRespondent, host: string, port: int): Result[void, SpError] =
+proc connect*(resp: SpRespondent, host: string, port: int): Choice[bool] =
   try:
     resp.peer_id = resp.sock.connect(host, port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc recv*(resp: SpRespondent): Result[string, SpError] =
+proc recv*(resp: SpRespondent): Choice[string] =
   try:
     let (_, data) = resp.sock.recv_any()
-    Result[string, SpError].good(data)
+    good(data)
   except SpError as e:
-    Result[string, SpError].bad(e[])
+    bad[string]("sp", e.msg)
 
-proc respond*(resp: SpRespondent, data: string): Result[void, SpError] =
+proc respond*(resp: SpRespondent, data: string): Choice[bool] =
   try:
     resp.sock.send_to(resp.peer_id, data)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
 proc close*(resp: SpRespondent) =
   if resp != nil and resp.sock != nil:

@@ -3,7 +3,8 @@
 {.experimental: "strict_funcs".}
 
 import std/[unittest, os]
-import sp/[pipeline, lattice]
+import basis/code/choice
+import sp/[pipeline]
 
 when not declared(pipeline_port):
   const pipeline_port = 41030

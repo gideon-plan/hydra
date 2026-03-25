@@ -5,7 +5,8 @@
 
 {.experimental: "strict_funcs".}
 
-import wire, socket, lattice
+import wire, socket
+import basis/code/choice
 
 # =====================================================================================================================
 # Types
@@ -25,34 +26,34 @@ type
 proc new_push*(): SpPush =
   SpPush(sock: new_socket(spPush))
 
-proc connect*(push: SpPush, host: string, port: int): Result[void, SpError] =
+proc connect*(push: SpPush, host: string, port: int): Choice[bool] =
   try:
     discard push.sock.connect(host, port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc listen*(push: SpPush, port: int): Result[void, SpError] =
+proc listen*(push: SpPush, port: int): Choice[bool] =
   try:
     push.sock.listen(port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc accept*(push: SpPush): Result[void, SpError] =
+proc accept*(push: SpPush): Choice[bool] =
   try:
     discard push.sock.accept_peer()
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc send*(push: SpPush, data: string): Result[void, SpError] =
+proc send*(push: SpPush, data: string): Choice[bool] =
   ## Send data to the next PULL peer (round-robin).
   try:
     push.sock.send_round_robin(data)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
 proc close*(push: SpPush) =
   if push != nil and push.sock != nil:
@@ -65,33 +66,33 @@ proc close*(push: SpPush) =
 proc new_pull*(): SpPull =
   SpPull(sock: new_socket(spPull))
 
-proc connect*(pull: SpPull, host: string, port: int): Result[void, SpError] =
+proc connect*(pull: SpPull, host: string, port: int): Choice[bool] =
   try:
     discard pull.sock.connect(host, port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc listen*(pull: SpPull, port: int): Result[void, SpError] =
+proc listen*(pull: SpPull, port: int): Choice[bool] =
   try:
     pull.sock.listen(port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc accept*(pull: SpPull): Result[void, SpError] =
+proc accept*(pull: SpPull): Choice[bool] =
   try:
     discard pull.sock.accept_peer()
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc recv*(pull: SpPull): Result[string, SpError] =
+proc recv*(pull: SpPull): Choice[string] =
   try:
     let (_, data) = pull.sock.recv_any()
-    Result[string, SpError].good(data)
+    good(data)
   except SpError as e:
-    Result[string, SpError].bad(e[])
+    bad[string]("sp", e.msg)
 
 proc close*(pull: SpPull) =
   if pull != nil and pull.sock != nil:

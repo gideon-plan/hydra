@@ -3,8 +3,8 @@
 {.experimental: "strict_funcs".}
 
 # Core
-import sp/[wire, transport, socket, pair, reqrep, pubsub, pipeline, survey, bus, lattice]
-export wire, transport, socket, pair, reqrep, pubsub, pipeline, survey, bus, lattice
+import sp/[wire, transport, socket, pair, reqrep, pubsub, pipeline, survey, bus]
+export wire, transport, socket, pair, reqrep, pubsub, pipeline, survey, bus
 
 # Registry
 import sp/registry

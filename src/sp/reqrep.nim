@@ -6,7 +6,8 @@
 {.experimental: "strict_funcs".}
 
 import std/atomics
-import wire, socket, lattice
+import basis/code/choice
+import wire, socket
 
 # =====================================================================================================================
 # Types
@@ -51,14 +52,14 @@ proc new_req*(): SpReq =
   result = SpReq(sock: new_socket(spReq), peer_id: 0)
   result.next_req_id.store(1)
 
-proc connect*(req: SpReq, host: string, port: int): Result[void, SpError] =
+proc connect*(req: SpReq, host: string, port: int): Choice[bool] =
   try:
     req.peer_id = req.sock.connect(host, port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc request*(req: SpReq, data: string): Result[string, SpError] =
+proc request*(req: SpReq, data: string): Choice[string] =
   ## Send a request and wait for the reply.
   let rid = uint32(req.next_req_id.fetchAdd(1))
   let msg = encode_req_id(rid) & data
@@ -67,10 +68,10 @@ proc request*(req: SpReq, data: string): Result[string, SpError] =
     let (_, resp) = req.sock.recv_any()
     let (resp_id, payload) = decode_req_id(resp)
     if resp_id != rid:
-      return Result[string, SpError].bad(SpError(msg: "request ID mismatch"))
-    Result[string, SpError].good(payload)
+      return bad[string]("sp", "request ID mismatch")
+    good(payload)
   except SpError as e:
-    Result[string, SpError].bad(e[])
+    bad[string]("sp", e.msg)
 
 proc close*(req: SpReq) =
   if req != nil and req.sock != nil:
@@ -83,37 +84,37 @@ proc close*(req: SpReq) =
 proc new_rep*(): SpRep =
   SpRep(sock: new_socket(spRep), peer_id: 0)
 
-proc listen*(rep: SpRep, port: int): Result[void, SpError] =
+proc listen*(rep: SpRep, port: int): Choice[bool] =
   try:
     rep.sock.listen(port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc accept*(rep: SpRep): Result[void, SpError] =
+proc accept*(rep: SpRep): Choice[bool] =
   try:
     rep.peer_id = rep.sock.accept_peer()
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc recv_request*(rep: SpRep): Result[(uint32, string), SpError] =
+proc recv_request*(rep: SpRep): Choice[(uint32, string)] =
   ## Receive a request. Returns (request_id, payload).
   try:
     let (_, data) = rep.sock.recv_any()
     let (rid, payload) = decode_req_id(data)
-    Result[(uint32, string), SpError].good((rid, payload))
+    good((rid, payload))
   except SpError as e:
-    Result[(uint32, string), SpError].bad(e[])
+    bad[(uint32, string)]("sp", e.msg)
 
-proc send_reply*(rep: SpRep, req_id: uint32, data: string): Result[void, SpError] =
+proc send_reply*(rep: SpRep, req_id: uint32, data: string): Choice[bool] =
   ## Send a reply with the matching request ID.
   let msg = encode_req_id(req_id) & data
   try:
     rep.sock.send_to(rep.peer_id, msg)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
 proc close*(rep: SpRep) =
   if rep != nil and rep.sock != nil:

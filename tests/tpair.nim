@@ -3,7 +3,8 @@
 {.experimental: "strict_funcs".}
 
 import std/[unittest, os]
-import sp/[pair, lattice]
+import basis/code/choice
+import sp/[pair]
 
 when not declared(pair_port):
   const pair_port = 41000

@@ -3,7 +3,8 @@
 {.experimental: "strict_funcs".}
 
 import std/[unittest, os]
-import sp/[bus, lattice]
+import basis/code/choice
+import sp/[bus]
 
 when not declared(bus_port):
   const bus_port = 41050

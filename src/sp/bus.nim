@@ -5,7 +5,8 @@
 
 {.experimental: "strict_funcs".}
 
-import wire, socket, lattice
+import wire, socket
+import basis/code/choice
 
 # =====================================================================================================================
 # Types
@@ -22,42 +23,42 @@ type
 proc new_bus*(): SpBus =
   SpBus(sock: new_socket(spBus))
 
-proc connect*(bus: SpBus, host: string, port: int): Result[void, SpError] =
+proc connect*(bus: SpBus, host: string, port: int): Choice[bool] =
   try:
     discard bus.sock.connect(host, port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc listen*(bus: SpBus, port: int): Result[void, SpError] =
+proc listen*(bus: SpBus, port: int): Choice[bool] =
   try:
     bus.sock.listen(port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc accept*(bus: SpBus): Result[void, SpError] =
+proc accept*(bus: SpBus): Choice[bool] =
   try:
     discard bus.sock.accept_peer()
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc send*(bus: SpBus, data: string): Result[void, SpError] =
+proc send*(bus: SpBus, data: string): Choice[bool] =
   ## Broadcast data to all peers.
   try:
     bus.sock.send_all(data)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc recv*(bus: SpBus): Result[string, SpError] =
+proc recv*(bus: SpBus): Choice[string] =
   ## Receive from any peer.
   try:
     let (_, data) = bus.sock.recv_any()
-    Result[string, SpError].good(data)
+    good(data)
   except SpError as e:
-    Result[string, SpError].bad(e[])
+    bad[string]("sp", e.msg)
 
 proc close*(bus: SpBus) =
   if bus != nil and bus.sock != nil:

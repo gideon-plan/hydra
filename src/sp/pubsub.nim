@@ -6,7 +6,8 @@
 {.experimental: "strict_funcs".}
 
 import std/strutils
-import wire, socket, lattice
+import basis/code/choice
+import wire, socket
 
 # =====================================================================================================================
 # Types
@@ -28,27 +29,27 @@ type
 proc new_pub*(): SpPub =
   SpPub(sock: new_socket(spPub))
 
-proc listen*(pub: SpPub, port: int): Result[void, SpError] =
+proc listen*(pub: SpPub, port: int): Choice[bool] =
   try:
     pub.sock.listen(port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc accept*(pub: SpPub): Result[void, SpError] =
+proc accept*(pub: SpPub): Choice[bool] =
   try:
     discard pub.sock.accept_peer()
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc publish*(pub: SpPub, data: string): Result[void, SpError] =
+proc publish*(pub: SpPub, data: string): Choice[bool] =
   ## Send data to all connected subscribers.
   try:
     pub.sock.send_all(data)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
 proc close*(pub: SpPub) =
   if pub != nil and pub.sock != nil:
@@ -61,27 +62,27 @@ proc close*(pub: SpPub) =
 proc new_sub*(filter: string = ""): SpSub =
   SpSub(sock: new_socket(spSub), peer_id: 0, filter: filter)
 
-proc connect*(sub: SpSub, host: string, port: int): Result[void, SpError] =
+proc connect*(sub: SpSub, host: string, port: int): Choice[bool] =
   try:
     sub.peer_id = sub.sock.connect(host, port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
 proc set_filter*(sub: SpSub, filter: string) =
   sub.filter = filter
 
-proc recv*(sub: SpSub): Result[string, SpError] =
+proc recv*(sub: SpSub): Choice[string] =
   ## Receive the next message matching the subscription filter.
   ## Blocks until a matching message arrives.
   while true:
     try:
       let (_, data) = sub.sock.recv_any()
       if sub.filter.len == 0 or data.startsWith(sub.filter):
-        return Result[string, SpError].good(data)
+        return good(data)
       # Non-matching message: discard, read next
     except SpError as e:
-      return Result[string, SpError].bad(e[])
+      return bad[string]("sp", e.msg)
 
 proc close*(sub: SpSub) =
   if sub != nil and sub.sock != nil:

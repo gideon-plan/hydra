@@ -3,7 +3,8 @@
 {.experimental: "strict_funcs".}
 
 import std/[unittest, os, atomics]
-import sp/[pubsub, lattice]
+import basis/code/choice
+import sp/[pubsub]
 
 when not declared(pubsub_port):
   const pubsub_port = 41020

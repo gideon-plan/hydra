@@ -4,7 +4,8 @@
 
 {.experimental: "strict_funcs".}
 
-import wire, socket, lattice
+import wire, socket
+import basis/code/choice
 
 # =====================================================================================================================
 # Types
@@ -22,40 +23,40 @@ type
 proc new_pair*(): SpPair =
   SpPair(sock: new_socket(spPair), peer_id: 0)
 
-proc connect*(pair: SpPair, host: string, port: int): Result[void, SpError] =
+proc connect*(pair: SpPair, host: string, port: int): Choice[bool] =
   try:
     pair.peer_id = pair.sock.connect(host, port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc listen*(pair: SpPair, port: int): Result[void, SpError] =
+proc listen*(pair: SpPair, port: int): Choice[bool] =
   try:
     pair.sock.listen(port)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc accept*(pair: SpPair): Result[void, SpError] =
+proc accept*(pair: SpPair): Choice[bool] =
   try:
     pair.peer_id = pair.sock.accept_peer()
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc send*(pair: SpPair, data: string): Result[void, SpError] =
+proc send*(pair: SpPair, data: string): Choice[bool] =
   try:
     pair.sock.send_to(pair.peer_id, data)
-    Result[void, SpError](ok: true)
+    good(true)
   except SpError as e:
-    Result[void, SpError].bad(e[])
+    bad[bool]("sp", e.msg)
 
-proc recv*(pair: SpPair): Result[string, SpError] =
+proc recv*(pair: SpPair): Choice[string] =
   try:
     let (_, data) = pair.sock.recv_any()
-    Result[string, SpError].good(data)
+    good(data)
   except SpError as e:
-    Result[string, SpError].bad(e[])
+    bad[string]("sp", e.msg)
 
 proc close*(pair: SpPair) =
   if pair != nil and pair.sock != nil:

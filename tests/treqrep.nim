@@ -3,7 +3,8 @@
 {.experimental: "strict_funcs".}
 
 import std/[unittest, os]
-import sp/[reqrep, lattice]
+import basis/code/choice
+import sp/[reqrep]
 
 when not declared(reqrep_port):
   const reqrep_port = 41010
