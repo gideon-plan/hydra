@@ -8,6 +8,7 @@
 import std/net
 import wire
 import libressl/tls as libtls
+import basis/code/choice
 
 # =====================================================================================================================
 # Types
@@ -185,3 +186,27 @@ proc ipc_listen*(path: string, proto: uint16): SpListener {.raises: [SpError].} 
     result.sock.listen()
   except CatchableError as e:
     raise newException(SpError, "ipc listen: " & e.msg)
+
+# =====================================================================================================================
+# Choice overloads (non-raising)
+# =====================================================================================================================
+
+proc try_tcp_dial*(host: string, port: int, proto: uint16): Choice[SpConn] =
+  ## Connect to a TCP endpoint, returning Choice instead of raising.
+  try: good(tcp_dial(host, port, proto))
+  except SpError as e: bad[SpConn]("sp", e.msg)
+
+proc try_tcp_listen*(port: int, proto: uint16): Choice[SpListener] =
+  ## Bind and listen on a TCP port, returning Choice instead of raising.
+  try: good(tcp_listen(port, proto))
+  except SpError as e: bad[SpListener]("sp", e.msg)
+
+proc try_ipc_dial*(path: string, proto: uint16): Choice[SpConn] =
+  ## Connect to a Unix domain socket, returning Choice instead of raising.
+  try: good(ipc_dial(path, proto))
+  except SpError as e: bad[SpConn]("sp", e.msg)
+
+proc try_ipc_listen*(path: string, proto: uint16): Choice[SpListener] =
+  ## Bind and listen on a Unix domain socket, returning Choice instead of raising.
+  try: good(ipc_listen(path, proto))
+  except SpError as e: bad[SpListener]("sp", e.msg)

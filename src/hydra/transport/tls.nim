@@ -8,6 +8,7 @@ import std/net
 import ../wire
 import ../transport
 import libressl/tls as libtls
+import basis/code/choice
 
 proc get_fd(sock: Socket): cint =
   ## Extract the file descriptor from a Nim Socket.
@@ -135,3 +136,26 @@ proc close*(listener: SpTlsListener) {.raises: [].} =
     if listener.cfg != nil:
       tls_config_free(listener.cfg)
     close(listener.inner)
+
+# =====================================================================================================================
+# Choice overloads (non-raising)
+# =====================================================================================================================
+
+proc try_tls_dial*(host: string, port: int, proto: uint16,
+                   cert_file: string = "", key_file: string = ""
+                  ): Choice[SpConn] =
+  ## Connect to a TLS endpoint, returning Choice instead of raising.
+  try: good(tls_dial(host, port, proto, cert_file, key_file))
+  except SpError as e: bad[SpConn]("sp", e.msg)
+
+proc try_tls_listen*(port: int, proto: uint16,
+                     cert_file: string, key_file: string
+                    ): Choice[SpTlsListener] =
+  ## Bind and listen on a TLS port, returning Choice instead of raising.
+  try: good(tls_listen(port, proto, cert_file, key_file))
+  except SpError as e: bad[SpTlsListener]("sp", e.msg)
+
+proc try_tls_accept*(listener: SpTlsListener): Choice[SpConn] =
+  ## Accept a TLS connection, returning Choice instead of raising.
+  try: good(tls_accept(listener))
+  except SpError as e: bad[SpConn]("sp", e.msg)
