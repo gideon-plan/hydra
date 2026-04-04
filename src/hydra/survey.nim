@@ -1,3 +1,4 @@
+{.experimental: "strictFuncs".}
 ## survey.nim -- SURVEY pattern: scatter-gather with deadline.
 ##
 ## SURVEYOR: send question to all respondents, collect replies within deadline.

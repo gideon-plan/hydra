@@ -1,4 +1,5 @@
 switch("path", "src")
+switch("outdir", ".out")
 switch("path", thisDir() & "/../libressl/src")
 
 import std/os
