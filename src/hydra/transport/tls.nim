@@ -22,7 +22,7 @@ proc tls_dial*(host: string, port: int, proto: uint16,
                cert_file: string = "", key_file: string = ""
               ): SpConn {.raises: [SpError].} =
   ## Connect to a TLS endpoint and perform SP handshake.
-  result = SpConn(kind: tkTcp)
+  result = SpConn(kind: TransportKind.Tcp)
   try:
     result.sock = newSocket()
     result.sock.connect(host, Port(port))
@@ -126,7 +126,7 @@ proc tls_accept*(listener: SpTlsListener): SpConn {.raises: [SpError].} =
       tls_free(accepted_ctx)
       raise newException(SpError, "tls accept handshake: " & err)
 
-  result = SpConn(kind: tkTcp, sock: client, tls_ctx: accepted_ctx)
+  result = SpConn(kind: TransportKind.Tcp, sock: client, tls_ctx: accepted_ctx)
   do_handshake(result, listener.inner.proto)
 
 proc close*(listener: SpTlsListener) {.raises: [].} =

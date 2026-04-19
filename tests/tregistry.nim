@@ -9,56 +9,56 @@ import hydra/registry
 suite "URL parsing":
   test "parse tcp URL":
     let ep = parse_endpoint("tcp://localhost:5555")
-    check ep.scheme == ssTcp
+    check ep.scheme == SpScheme.Tcp
     check ep.host == "localhost"
     check ep.port == 5555
 
   test "parse ipc URL":
     let ep = parse_endpoint("ipc:///tmp/sp.sock")
-    check ep.scheme == ssIpc
+    check ep.scheme == SpScheme.Ipc
     check ep.path == "/tmp/sp.sock"
 
   test "parse tls URL":
     let ep = parse_endpoint("tls://example.com:4433")
-    check ep.scheme == ssTls
+    check ep.scheme == SpScheme.Tls
     check ep.host == "example.com"
     check ep.port == 4433
 
   test "parse shm URL":
     let ep = parse_endpoint("shm://channel_name")
-    check ep.scheme == ssShm
+    check ep.scheme == SpScheme.Shm
     check ep.path == "channel_name"
 
   test "parse quic URL":
     let ep = parse_endpoint("quic://host:4434")
-    check ep.scheme == ssQuic
+    check ep.scheme == SpScheme.Quic
     check ep.host == "host"
     check ep.port == 4434
 
   test "parse mqtt URL with path":
     let ep = parse_endpoint("mqtt://broker:1883/sp_prefix")
-    check ep.scheme == ssMqtt
+    check ep.scheme == SpScheme.Mqtt
     check ep.host == "broker"
     check ep.port == 1883
     check ep.path == "/sp_prefix"
 
   test "parse valkey URL":
     let ep = parse_endpoint("valkey://redis:6379/streams")
-    check ep.scheme == ssValkey
+    check ep.scheme == SpScheme.Valkey
     check ep.host == "redis"
     check ep.port == 6379
     check ep.path == "/streams"
 
   test "parse ws URL":
     let ep = parse_endpoint("ws://localhost:8080/sp")
-    check ep.scheme == ssWs
+    check ep.scheme == SpScheme.Ws
     check ep.host == "localhost"
     check ep.port == 8080
     check ep.path == "/sp"
 
   test "parse 9p URL":
     let ep = parse_endpoint("9p://host:564/sp_root")
-    check ep.scheme == ssNinep
+    check ep.scheme == SpScheme.Ninep
     check ep.host == "host"
     check ep.port == 564
 

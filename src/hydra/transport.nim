@@ -15,9 +15,9 @@ import basis/code/choice
 # =====================================================================================================================
 
 type
-  TransportKind* = enum
-    tkTcp
-    tkIpc
+  TransportKind* {.pure.} = enum
+    Tcp
+    Ipc
 
   SpConn* = ref object
     ## A single SP transport connection. ref-counted under atomicArc.
@@ -113,7 +113,7 @@ proc do_handshake*(conn: SpConn, my_proto: uint16) {.raises: [SpError].} =
 
 proc tcp_dial*(host: string, port: int, proto: uint16): SpConn {.raises: [SpError].} =
   ## Connect to a TCP endpoint and perform SP handshake.
-  result = SpConn(kind: tkTcp)
+  result = SpConn(kind: TransportKind.Tcp)
   try:
     result.sock = newSocket()
     result.sock.connect(host, Port(port))
@@ -130,7 +130,7 @@ type
 
 proc tcp_listen*(port: int, proto: uint16): SpListener {.raises: [SpError].} =
   ## Bind and listen on a TCP port.
-  result = SpListener(kind: tkTcp, proto: proto)
+  result = SpListener(kind: TransportKind.Tcp, proto: proto)
   try:
     result.sock = newSocket()
     result.sock.setSockOpt(OptReuseAddr, true)
@@ -169,7 +169,7 @@ proc close*(listener: SpListener) {.raises: [].} =
 
 proc ipc_dial*(path: string, proto: uint16): SpConn {.raises: [SpError].} =
   ## Connect to a Unix domain socket and perform SP handshake.
-  result = SpConn(kind: tkIpc)
+  result = SpConn(kind: TransportKind.Ipc)
   try:
     result.sock = newSocket(AF_UNIX, SOCK_STREAM, IPPROTO_IP)
     result.sock.connectUnix(path)
@@ -179,7 +179,7 @@ proc ipc_dial*(path: string, proto: uint16): SpConn {.raises: [SpError].} =
 
 proc ipc_listen*(path: string, proto: uint16): SpListener {.raises: [SpError].} =
   ## Bind and listen on a Unix domain socket.
-  result = SpListener(kind: tkIpc, proto: proto)
+  result = SpListener(kind: TransportKind.Ipc, proto: proto)
   try:
     result.sock = newSocket(AF_UNIX, SOCK_STREAM, IPPROTO_IP)
     result.sock.bindUnix(path)
