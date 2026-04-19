@@ -47,7 +47,7 @@ proc ws_send*(conn: WsConn, data: string) {.raises: [SpError].} =
   ## Send data as a WebSocket binary frame using httpd codec.
   var payload: seq[byte] = @[]
   for c in data: payload.add(byte(c))
-  let frame = encode_frame(wsBinary, payload)
+  let frame = encode_frame(WsOpcode.Binary, payload)
   var frame_str = ""
   for b in frame: frame_str.add(char(b))
   try:

@@ -12,10 +12,10 @@ var g_ipc_server: SpPair
 proc ipc_server_thread() {.thread.} =
   {.gcsafe.}:
     g_ipc_server = new_pair()
-    let sock = new_socket(spPair)
+    let sock = new_socket(SpPattern.Pair)
     g_ipc_server = SpPair()  # reset
     # Use raw socket for IPC
-    let listener_sock = new_socket(spPair)
+    let listener_sock = new_socket(SpPattern.Pair)
     listener_sock.listen_ipc(ipc_path)
     let pid = listener_sock.accept_peer()
     # Echo back
@@ -32,7 +32,7 @@ suite "IPC transport":
     createThread(t, ipc_server_thread)
     sleep(200)
 
-    let client_sock = new_socket(spPair)
+    let client_sock = new_socket(SpPattern.Pair)
     let pid = client_sock.connect_ipc(ipc_path)
     client_sock.send_to(pid, "ipc hello")
     let (_, data) = client_sock.recv_any()

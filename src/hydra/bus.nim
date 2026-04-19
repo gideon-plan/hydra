@@ -21,7 +21,7 @@ type
 # =====================================================================================================================
 
 proc new_bus*(): SpBus =
-  SpBus(sock: new_socket(spBus))
+  SpBus(sock: new_socket(SpPattern.Bus))
 
 proc connect*(bus: SpBus, host: string, port: int): Choice[bool] =
   try:

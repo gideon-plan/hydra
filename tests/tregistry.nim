@@ -95,6 +95,6 @@ suite "dial/listen dispatch":
   test "unsupported scheme raises":
     let ep = parse_endpoint("quic://host:4434")
     expect SpError:
-      discard dial(ep, spPair)
+      discard dial(ep, SpPattern.Pair)
     expect SpError:
-      discard listen(ep, spPair)
+      discard listen(ep, SpPattern.Pair)

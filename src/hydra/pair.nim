@@ -21,7 +21,7 @@ type
 # =====================================================================================================================
 
 proc new_pair*(): SpPair =
-  SpPair(sock: new_socket(spPair), peer_id: 0)
+  SpPair(sock: new_socket(SpPattern.Pair), peer_id: 0)
 
 proc connect*(pair: SpPair, host: string, port: int): Choice[bool] =
   try:

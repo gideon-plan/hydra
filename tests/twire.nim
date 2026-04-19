@@ -37,11 +37,11 @@ suite "wire format":
     check decoded.payload == ""
 
   test "handshake round-trip PAIR":
-    let enc = encode_handshake(spPair)
+    let enc = encode_handshake(SpPattern.Pair)
     check enc.len == 8
     var pos = 0
     let proto = decode_handshake(enc, pos)
-    check proto == spPair
+    check proto == SpPattern.Pair
 
   test "handshake round-trip REQ":
     let enc = encode_handshake(spReq)
@@ -64,8 +64,8 @@ suite "wire format":
     check peer_protocol(spPull) == spPush
     check peer_protocol(spSurveyor) == spRespondent
     check peer_protocol(spRespondent) == spSurveyor
-    check peer_protocol(spPair) == spPair
-    check peer_protocol(spBus) == spBus
+    check peer_protocol(SpPattern.Pair) == SpPattern.Pair
+    check peer_protocol(SpPattern.Bus) == SpPattern.Bus
 
   test "multi-frame decode":
     let f1 = encode_frame(SpFrame(header: "", payload: "one"))

@@ -17,7 +17,7 @@ type
 # =====================================================================================================================
 
 const
-  spPair*       = 0x10'u16
+  SpPattern.Pair*       = 0x10'u16
   spPub*        = 0x20'u16
   spSub*        = 0x21'u16
   spReq*        = 0x30'u16
@@ -26,12 +26,12 @@ const
   spPull*       = 0x51'u16
   spSurveyor*   = 0x60'u16
   spRespondent* = 0x61'u16
-  spBus*        = 0x70'u16
+  SpPattern.Bus*        = 0x70'u16
 
 proc peer_protocol*(proto: uint16): uint16 =
   ## Return the expected peer protocol for a given protocol.
   case proto
-  of spPair: spPair
+  of SpPattern.Pair: SpPattern.Pair
   of spPub: spSub
   of spSub: spPub
   of spReq: spRep
@@ -40,7 +40,7 @@ proc peer_protocol*(proto: uint16): uint16 =
   of spPull: spPush
   of spSurveyor: spRespondent
   of spRespondent: spSurveyor
-  of spBus: spBus
+  of SpPattern.Bus: SpPattern.Bus
   else: 0
 
 # =====================================================================================================================
